@@ -79,12 +79,15 @@ export default function CreateClient() {
   return (
     <div className="cs-page">
       {/* Back to wall */}
-      <Link href="/" className="cs-back">← Back to wall</Link>
+      <Link href="/" className="cs-back">← Back</Link>
 
       <div className="cs-card">
-        <h2 className="cs-title">
-          {tab === 'register' ? 'Creating Space' : 'Welcome Back'}
-        </h2>
+        <div className="cs-card-header">
+          <h2 className="cs-title">
+            {tab === 'register' ? 'Creating Space' : 'Welcome Back'}
+          </h2>
+          <Link href="/" className="cs-close-btn" aria-label="Close">✕</Link>
+        </div>
 
         {/* Tab switcher */}
         <div className="cs-tabs">
@@ -150,4 +153,3 @@ export default function CreateClient() {
     </div>
   );
 }
-    
