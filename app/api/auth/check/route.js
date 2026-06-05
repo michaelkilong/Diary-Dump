@@ -1,15 +1,6 @@
 // app/api/auth/check/route.js
 import { NextResponse } from 'next/server';
-import { createRequire } from 'module';
-const require = createRequire(import.meta.url);
-const admin = require('firebase-admin');
-
-function getDb() {
-  if (!admin.apps.length) {
-    admin.initializeApp({ credential: admin.credential.cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)) });
-  }
-  return admin.firestore();
-}
+import { getAdminDb } from '../../../../lib/adminDb.js';
 
 const RESERVED = ['admin','settings','menu','create','login','api','pinned','public'];
 
@@ -25,9 +16,9 @@ export async function GET(req) {
   if (RESERVED.includes(username))
     return NextResponse.json({ available: false, reason: 'That name is reserved' });
 
-  const db = getDb();
+  const db  = getAdminDb();
   const doc = await db.collection('users').doc(username).get();
-  if (doc.exists) return NextResponse.json({ available: false, reason: 'Already taken' });
-  return NextResponse.json({ available: true });
-    }
-                         
+  return NextResponse.json(doc.exists
+    ? { available: false, reason: 'Already taken' }
+    : { available: true });
+}
