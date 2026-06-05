@@ -1,20 +1,14 @@
 // app/api/react/route.js
 import { NextResponse } from 'next/server';
-import { createRequire } from 'module';
 import { createHash } from 'crypto';
-const require = createRequire(import.meta.url);
-const admin = require('firebase-admin');
-
-function getDb() {
-  if (!admin.apps.length) {
-    admin.initializeApp({ credential: admin.credential.cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)) });
-  }
-  return admin.firestore();
-}
+import { getAdminDb, FieldValue } from '../../../lib/adminDb.js';
 
 const REACTION_KEYS = {
-  '🕯️': 'candle', '🌹': 'rose', '💙': 'blue_heart',
-  '🤍': 'white_heart', '🕊️': 'dove',
+  '\u{1F56F}\uFE0F': 'candle',
+  '\u{1F339}': 'rose',
+  '\u{1F499}': 'blue_heart',
+  '\u{1F90D}': 'white_heart',
+  '\u{1F54A}\uFE0F': 'dove',
 };
 
 function hashIp(ip) {
@@ -32,16 +26,15 @@ export async function POST(req) {
     const reactionKey = REACTION_KEYS[emoji];
     if (!reactionKey) return NextResponse.json({ error: 'Invalid emoji' }, { status: 400 });
 
-    const db = getDb();
-    const ipHash = hashIp(getIp(req));
+    const db         = getAdminDb();
+    const ipHash     = hashIp(getIp(req));
     const reactorRef = db.collection('notes').doc(noteId).collection('reactors').doc(`${ipHash}_${reactionKey}`);
-    const existing = await reactorRef.get();
-    if (existing.exists) return NextResponse.json({ alreadyReacted: true });
+    if ((await reactorRef.get()).exists) return NextResponse.json({ alreadyReacted: true });
 
     const batch = db.batch();
-    batch.set(reactorRef, { reactedAt: admin.firestore.FieldValue.serverTimestamp() });
+    batch.set(reactorRef, { reactedAt: FieldValue.serverTimestamp() });
     batch.update(db.collection('notes').doc(noteId), {
-      [`reactions.${reactionKey}`]: admin.firestore.FieldValue.increment(1)
+      [`reactions.${reactionKey}`]: FieldValue.increment(1),
     });
     await batch.commit();
     return NextResponse.json({ success: true });
