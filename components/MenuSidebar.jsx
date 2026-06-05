@@ -1,123 +1,124 @@
+// components/MenuSidebar.jsx
 'use client';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { db } from '../lib/firebase';
-import { collection, getDocs, orderBy, query } from 'firebase/firestore';
+import { useRouter, usePathname } from 'next/navigation';
 
 export default function MenuSidebar({ currentUser }) {
-  const [open,   setOpen]   = useState(false);
-  const [spaces, setSpaces] = useState([]);
-  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const router   = useRouter();
+  const pathname = usePathname();
 
-  useEffect(() => {
-    if (!open) return;
-    // Load all spaces once sidebar opens
-    getDocs(query(collection(db, 'spaces'), orderBy('createdAt', 'asc')))
-      .then((snap) => {
-        setSpaces(snap.docs.map((d) => d.id));
-      })
-      .catch(() => {});
-  }, [open]);
+  function close() { setOpen(false); }
 
   async function handleLogout() {
     await fetch('/api/auth/logout', { method: 'POST' });
     router.refresh();
-    setOpen(false);
+    close();
+  }
+
+  function isActive(href) {
+    return pathname === href;
   }
 
   return (
     <>
-      {/* Hamburger button — top left, always visible */}
-      <button
-        className="hamburger"
-        onClick={() => setOpen(true)}
-        aria-label="Open menu"
-      >
-        <span /><span /><span />
+      {/* Hamburger */}
+      <button className="hamburger" onClick={() => setOpen(true)} aria-label="Open menu">
+        <i className="fa-solid fa-bars" />
       </button>
 
-      {/* Backdrop */}
-      {open && (
-        <div className="menu-backdrop" onClick={() => setOpen(false)} />
-      )}
+      {open && <div className="menu-backdrop" onClick={close} />}
 
-      {/* Sidebar */}
-      <nav className={`menu-sidebar${open ? ' open' : ''}`}>
+      <nav className={`menu-sidebar${open ? ' open' : ''}`} aria-label="Navigation">
+
+        {/* Header */}
         <div className="menu-header">
-          <span className="menu-title">Menu</span>
-          <button className="menu-x" onClick={() => setOpen(false)} aria-label="Close">✕</button>
+          <div className="menu-brand">
+            <i className="fa-solid fa-feather-pointed menu-brand-icon" />
+            <span className="menu-brand-name">Diary Dump</span>
+          </div>
+          <button className="menu-close-btn" onClick={close} aria-label="Close">
+            <i className="fa-solid fa-xmark" />
+          </button>
         </div>
 
+        {/* User pill — if logged in */}
+        {currentUser && (
+          <div className="menu-user-pill">
+            <i className="fa-solid fa-circle-user" />
+            <span>@{currentUser}</span>
+          </div>
+        )}
+
+        {/* Nav items */}
         <ul className="menu-list">
-          {/* Public Wall */}
-          <li className="menu-item">
-            <Link href="/" className="menu-item-link public-wall" onClick={() => setOpen(false)}>
-              <span className="menu-dot" />
-              <span>Public Wall</span>
+
+          <li>
+            <Link href="/" className={`menu-link${isActive('/') ? ' menu-link-active' : ''}`} onClick={close}>
+              <i className="fa-solid fa-thumbtack menu-link-icon" />
+              <span className="menu-link-text">
+                Public Wall
+                <small>Everyone's notes</small>
+              </span>
+              {isActive('/') && <i className="fa-solid fa-chevron-right menu-link-arrow" />}
             </Link>
           </li>
 
-          {/* Logged-in user's own space */}
-          {currentUser && (
-            <li className="menu-item">
-              <Link href={`/space/${currentUser}`} className="menu-item-link own-space" onClick={() => setOpen(false)}>
-                <span className="menu-dot" />
-                <span>My Space</span>
+          {currentUser ? (
+            <li>
+              <Link
+                href={`/space/${currentUser}`}
+                className={`menu-link${isActive(`/space/${currentUser}`) ? ' menu-link-active' : ''}`}
+                onClick={close}
+              >
+                <i className="fa-solid fa-layer-group menu-link-icon" />
+                <span className="menu-link-text">
+                  My Space
+                  <small>Your personal wall</small>
+                </span>
+                {isActive(`/space/${currentUser}`) && <i className="fa-solid fa-chevron-right menu-link-arrow" />}
+              </Link>
+            </li>
+          ) : (
+            <li>
+              <Link href="/create" className="menu-link menu-link-cta" onClick={close}>
+                <i className="fa-solid fa-plus menu-link-icon" />
+                <span className="menu-link-text">
+                  Create Your Space
+                  <small>Free · Takes 10 seconds</small>
+                </span>
               </Link>
             </li>
           )}
 
-          {/* Section divider for other spaces */}
-          {spaces.length > 0 && spaces.filter(s => s !== currentUser).length > 0 && (
-            <li className="menu-divider" />
-          )}
-
-          {/* All other spaces */}
-          {spaces
-            .filter((s) => s !== currentUser)
-            .map((username) => (
-              <li key={username} className="menu-item">
-                <Link href={`/space/${username}`} className="menu-item-link" onClick={() => setOpen(false)}>
-                  <span className="menu-dot" />
-                  <span>{username}'s Space</span>
-                </Link>
-              </li>
-            ))}
         </ul>
 
-        <div className="menu-create-section">
-          <Link href="/create" className="menu-create-btn" onClick={() => setOpen(false)}>
-            + New Space
-          </Link>
+        {/* Bottom section — settings always visible */}
+        <div className="menu-bottom">
+          <div className="menu-bottom-links">
+            <Link
+              href="/settings"
+              className={`menu-bottom-link${isActive('/settings') ? ' menu-link-active' : ''}`}
+              onClick={close}
+            >
+              <i className="fa-solid fa-gear" />
+              Settings
+            </Link>
+
+            {currentUser && (
+              <button className="menu-bottom-link menu-bottom-logout" onClick={handleLogout}>
+                <i className="fa-solid fa-arrow-right-from-bracket" />
+                Log Out
+              </button>
+            )}
+          </div>
+
+          <p className="menu-tagline">Write it down, let it go.</p>
         </div>
 
-        {/* Settings pinned at bottom */}
-        <div className="menu-bottom">
-          {currentUser ? (
-            <>
-              <Link
-                href="/settings"
-                className="menu-settings-btn"
-                onClick={() => setOpen(false)}
-              >
-                Settings
-              </Link>
-              <button className="menu-logout-btn" onClick={handleLogout}>
-                Log out
-              </button>
-            </>
-          ) : (
-            <Link
-              href="/create"
-              className="menu-login-btn"
-              onClick={() => setOpen(false)}
-            >
-              Sign In
-            </Link>
-          )}
-        </div>
       </nav>
     </>
   );
-}
+      }
+
