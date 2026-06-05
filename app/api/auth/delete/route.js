@@ -3,27 +3,19 @@ import { NextResponse } from 'next/server';
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 const bcrypt = require('bcryptjs');
-const admin = require('firebase-admin');
-
-function getDb() {
-  if (!admin.apps.length) {
-    admin.initializeApp({ credential: admin.credential.cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)) });
-  }
-  return admin.firestore();
-}
+import { getAdminDb } from '../../../../lib/adminDb.js';
+import { getSession, clearCookieOptions } from '../../../../lib/auth.js';
 
 export async function POST(req) {
   try {
-    const { getSession, clearCookieOptions } = await import('../../../../lib/auth.js');
     const username = await getSession();
     if (!username) return NextResponse.json({ error: 'Not logged in' }, { status: 401 });
 
     const { password } = await req.json();
     if (!password) return NextResponse.json({ error: 'Password required' }, { status: 400 });
 
-    const db = getDb();
-    const userRef = db.collection('users').doc(username);
-    const userDoc = await userRef.get();
+    const db      = getAdminDb();
+    const userDoc = await db.collection('users').doc(username).get();
     if (!userDoc.exists) return NextResponse.json({ error: 'User not found' }, { status: 404 });
 
     const match = await bcrypt.compare(password, userDoc.data().password);
@@ -33,7 +25,7 @@ export async function POST(req) {
     const batch = db.batch();
     notesSnap.docs.forEach((d) => batch.delete(d.ref));
     batch.delete(db.collection('spaces').doc(username));
-    batch.delete(userRef);
+    batch.delete(db.collection('users').doc(username));
     await batch.commit();
 
     const res = NextResponse.json({ success: true });
@@ -44,3 +36,4 @@ export async function POST(req) {
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }
+
