@@ -1,5 +1,3 @@
-
-// app/settings/page.jsx
 import { getSession } from '../../lib/auth';
 import { redirect }   from 'next/navigation';
 import SettingsClient from './SettingsClient';
