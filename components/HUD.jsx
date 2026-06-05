@@ -1,18 +1,15 @@
-// components/HUD.jsx
 'use client';
 
-export default function HUD({ mode, noteCount, viewCount, scale, spaceTitle, onAddClick, onZoomIn, onZoomOut, onReset }) {
+export default function HUD({ mode, noteCount, viewCount, scale, onAddClick, onZoomIn, onZoomOut, onReset }) {
   return (
     <div className="hud">
       <header className="hud-header">
-        <h1>{spaceTitle || 'Diary Dump'}</h1>
-        <p>{spaceTitle ? `${spaceTitle} — leave a note` : 'Write it down, let it go. Someone will find it someday'}</p>
+        <h1>Diary Dump</h1>
+        <p>Write it down, let it go. Someone will find it someday</p>
         <div className="stats-bar">
           <span className="stat"><span className="stat-icon">✦</span>{noteCount} notes</span>
-          {viewCount !== null && <>
-            <span className="stat-divider">·</span>
-            <span className="stat"><span className="stat-icon">👁</span>{viewCount} seen</span>
-          </>}
+          <span className="stat-divider">·</span>
+          <span className="stat"><span className="stat-icon">👁</span>{viewCount} seen</span>
         </div>
       </header>
 
