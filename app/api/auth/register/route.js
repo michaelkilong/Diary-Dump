@@ -3,14 +3,8 @@ import { NextResponse } from 'next/server';
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 const bcrypt = require('bcryptjs');
-const admin = require('firebase-admin');
-
-function getDb() {
-  if (!admin.apps.length) {
-    admin.initializeApp({ credential: admin.credential.cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)) });
-  }
-  return admin.firestore();
-}
+import { getAdminDb, FieldValue } from '../../../../lib/adminDb.js';
+import { signToken, cookieOptions } from '../../../../lib/auth.js';
 
 const RESERVED = ['admin','settings','menu','create','login','api','pinned','public'];
 
@@ -27,19 +21,17 @@ export async function POST(req) {
     if (!password || password.length < 6)
       return NextResponse.json({ error: 'Password must be at least 6 characters' }, { status: 400 });
 
-    const db = getDb();
+    const db = getAdminDb();
     const userRef = db.collection('users').doc(username);
-    const existing = await userRef.get();
-    if (existing.exists)
+    if ((await userRef.get()).exists)
       return NextResponse.json({ error: 'Username already taken' }, { status: 409 });
 
     const hash = await bcrypt.hash(password, 12);
     const batch = db.batch();
-    batch.set(userRef, { password: hash, createdAt: admin.firestore.FieldValue.serverTimestamp() });
-    batch.set(db.collection('spaces').doc(username), { owner: username, createdAt: admin.firestore.FieldValue.serverTimestamp() });
+    batch.set(userRef, { password: hash, createdAt: FieldValue.serverTimestamp() });
+    batch.set(db.collection('spaces').doc(username), { owner: username, createdAt: FieldValue.serverTimestamp() });
     await batch.commit();
 
-    const { signToken, cookieOptions } = await import('../../../../lib/auth.js');
     const token = await signToken(username);
     const res = NextResponse.json({ success: true, username });
     res.cookies.set(cookieOptions(token));
@@ -49,3 +41,4 @@ export async function POST(req) {
     return NextResponse.json({ error: 'Server error. Please try again.' }, { status: 500 });
   }
 }
+
