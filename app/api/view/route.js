@@ -1,16 +1,7 @@
 // app/api/view/route.js
 import { NextResponse } from 'next/server';
-import { createRequire } from 'module';
 import { createHash } from 'crypto';
-const require = createRequire(import.meta.url);
-const admin = require('firebase-admin');
-
-function getDb() {
-  if (!admin.apps.length) {
-    admin.initializeApp({ credential: admin.credential.cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)) });
-  }
-  return admin.firestore();
-}
+import { getAdminDb, FieldValue } from '../../../lib/adminDb.js';
 
 function hashIp(ip) {
   return createHash('sha256').update(ip + 'diarydump_salt').digest('hex').slice(0, 32);
@@ -25,19 +16,18 @@ export async function POST(req) {
     const { noteId } = await req.json();
     if (!noteId) return NextResponse.json({ error: 'Missing noteId' }, { status: 400 });
 
-    const db = getDb();
-    const ipHash = hashIp(getIp(req));
+    const db        = getAdminDb();
+    const ipHash    = hashIp(getIp(req));
     const viewerRef = db.collection('notes').doc(noteId).collection('viewers').doc(ipHash);
-    const existing = await viewerRef.get();
-    if (existing.exists) {
+    if ((await viewerRef.get()).exists) {
       const snap = await db.collection('notes').doc(noteId).get();
       return NextResponse.json({ alreadyViewed: true, views: snap.data()?.views ?? 0 });
     }
 
     const noteRef = db.collection('notes').doc(noteId);
-    const batch = db.batch();
-    batch.set(viewerRef, { viewedAt: admin.firestore.FieldValue.serverTimestamp() });
-    batch.update(noteRef, { views: admin.firestore.FieldValue.increment(1) });
+    const batch   = db.batch();
+    batch.set(viewerRef, { viewedAt: FieldValue.serverTimestamp() });
+    batch.update(noteRef, { views: FieldValue.increment(1) });
     await batch.commit();
 
     const updated = await noteRef.get();
