@@ -45,33 +45,32 @@ export default function MenuSidebar({ currentUser }) {
       {/* Sidebar */}
       <nav className={`menu-sidebar${open ? ' open' : ''}`}>
         <div className="menu-header">
-          <span className="menu-title">MENU</span>
+          <span className="menu-title">Menu</span>
           <button className="menu-x" onClick={() => setOpen(false)} aria-label="Close">✕</button>
         </div>
 
-        <div className="menu-section-label">
-          <Link href="/create" className="menu-create-btn" onClick={() => setOpen(false)}>
-            + CREATE YOUR SPACE
-          </Link>
-        </div>
-
         <ul className="menu-list">
-          {/* PINNED = public wall */}
-          <li className="menu-item pinned">
-            <Link href="/" onClick={() => setOpen(false)}>
+          {/* Public Wall */}
+          <li className="menu-item">
+            <Link href="/" className="menu-item-link public-wall" onClick={() => setOpen(false)}>
               <span className="menu-dot" />
-              PINNED
+              <span>Public Wall</span>
             </Link>
           </li>
 
-          {/* Logged-in user's own space first */}
+          {/* Logged-in user's own space */}
           {currentUser && (
-            <li className="menu-item own">
-              <Link href={`/space/${currentUser}`} onClick={() => setOpen(false)}>
+            <li className="menu-item">
+              <Link href={`/space/${currentUser}`} className="menu-item-link own-space" onClick={() => setOpen(false)}>
                 <span className="menu-dot" />
-                {currentUser}'s Space
+                <span>My Space</span>
               </Link>
             </li>
+          )}
+
+          {/* Section divider for other spaces */}
+          {spaces.length > 0 && spaces.filter(s => s !== currentUser).length > 0 && (
+            <li className="menu-divider" />
           )}
 
           {/* All other spaces */}
@@ -79,19 +78,19 @@ export default function MenuSidebar({ currentUser }) {
             .filter((s) => s !== currentUser)
             .map((username) => (
               <li key={username} className="menu-item">
-                <Link href={`/space/${username}`} onClick={() => setOpen(false)}>
+                <Link href={`/space/${username}`} className="menu-item-link" onClick={() => setOpen(false)}>
                   <span className="menu-dot" />
-                  {username}'s Space
+                  <span>{username}'s Space</span>
                 </Link>
               </li>
             ))}
         </ul>
 
-        {spaces.length === 0 && (
-          <p className="menu-empty">
-            {'{ Space page created\npinned at top }'}
-          </p>
-        )}
+        <div className="menu-create-section">
+          <Link href="/create" className="menu-create-btn" onClick={() => setOpen(false)}>
+            + New Space
+          </Link>
+        </div>
 
         {/* Settings pinned at bottom */}
         <div className="menu-bottom">
@@ -102,7 +101,7 @@ export default function MenuSidebar({ currentUser }) {
                 className="menu-settings-btn"
                 onClick={() => setOpen(false)}
               >
-                SETTINGS
+                Settings
               </Link>
               <button className="menu-logout-btn" onClick={handleLogout}>
                 Log out
@@ -111,14 +110,14 @@ export default function MenuSidebar({ currentUser }) {
           ) : (
             <Link
               href="/create"
-              className="menu-settings-btn"
+              className="menu-login-btn"
               onClick={() => setOpen(false)}
             >
-              LOG IN / SIGN UP
+              Sign In
             </Link>
           )}
         </div>
       </nav>
     </>
   );
-                    }
+}
