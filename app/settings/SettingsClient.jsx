@@ -33,10 +33,10 @@ export default function SettingsClient({ username }) {
   }
 
   return (
-    <div className="cs-page">
-      <Link href={`/space/${username}`} className="cs-back">← Back to my Space</Link>
+    <div className="settings-page">
+      <Link href={`/space/${username}`} className="settings-back">← Back to my Space</Link>
 
-      <div className="cs-card" style={{ maxWidth: 400 }}>
+      <div className="settings-card" style={{ maxWidth: 400 }}>
         <h2 className="cs-title">Settings</h2>
         <p className="cs-hint" style={{ marginBottom: 24 }}>Logged in as <strong>{username}</strong></p>
 
@@ -71,13 +71,13 @@ export default function SettingsClient({ username }) {
             <div className="settings-confirm">
               <p>This permanently deletes your space and all notes. Enter your password:</p>
               <input
-                className="cs-input"
+                className="settings-input"
                 type="password"
                 placeholder="Password"
                 value={password}
                 onChange={(e) => { setPassword(e.target.value); setError(''); }}
               />
-              {error && <p className="cs-error">{error}</p>}
+              {error && <p className="settings-error">{error}</p>}
               <div style={{ display:'flex', gap: 8, marginTop: 10 }}>
                 <button className="btn-ghost" onClick={() => { setConfirmDel(false); setError(''); }}>
                   Cancel
