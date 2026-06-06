@@ -1119,3 +1119,38 @@ html, body {
   font-style: italic;
   margin-top: 4px;
 }
+
+/* MenuSidebar icon fixes 
+ */
+
+.menu-link-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  flex-shrink: 0;
+  color: #aaa;
+  transition: color 0.2s ease;
+}
+
+.menu-link:hover .menu-link-icon {
+  color: #888;
+}
+
+.menu-link-active .menu-link-icon {
+  color: var(--gold-dark);
+}
+
+.menu-bottom-link svg {
+  flex-shrink: 0;
+  color: #bbb;
+  transition: color 0.2s ease;
+}
+
+.menu-bottom-link:hover svg {
+  color: #888;
+}
+
+.menu-bottom-logout svg {
+  color: #e0a0a0;
+}
