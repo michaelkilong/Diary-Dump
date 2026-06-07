@@ -1,4 +1,3 @@
-// app/space/[username]/page.jsx
 import { getAdminDb } from '../../../lib/adminDb';
 import { getSession }  from '../../../lib/auth';
 import { notFound }    from 'next/navigation';
@@ -9,7 +8,7 @@ export async function generateMetadata({ params }) {
 }
 
 export default async function SpacePage({ params }) {
-  const username = params.username.toLowerCase();
+  const { username } = params;
   const db    = getAdminDb();
   const space = await db.collection('spaces').doc(username).get();
   if (!space.exists) notFound();
@@ -24,4 +23,3 @@ export default async function SpacePage({ params }) {
     />
   );
 }
-

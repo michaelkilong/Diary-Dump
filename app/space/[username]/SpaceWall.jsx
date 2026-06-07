@@ -1,4 +1,3 @@
-// app/space/[username]/SpaceWall.jsx
 'use client';
 import { useEffect, useState, useCallback } from 'react';
 import { collection, onSnapshot } from 'firebase/firestore';
@@ -176,4 +175,3 @@ export default function SpaceWall({ spaceOwner, currentUser, isOwner }) {
     </>
   );
 }
-
