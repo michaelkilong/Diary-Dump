@@ -6,13 +6,12 @@ import { db } from '../lib/firebase';
 import { collection, getDocs, orderBy, query } from 'firebase/firestore';
 
 export default function MenuSidebar({ currentUser }) {
-  const [open,   setOpen]   = useState(false);
+  const [open, setOpen] = useState(false);
   const [spaces, setSpaces] = useState([]);
   const router = useRouter();
 
   useEffect(() => {
     if (!open) return;
-    // Load all spaces once sidebar opens
     getDocs(query(collection(db, 'spaces'), orderBy('createdAt', 'asc')))
       .then((snap) => {
         setSpaces(snap.docs.map((d) => d.id));
@@ -28,13 +27,13 @@ export default function MenuSidebar({ currentUser }) {
 
   return (
     <>
-      {/* Hamburger button — top left, always visible */}
+      {/* Hamburger button — using ☰ for guaranteed visibility */}
       <button
         className="hamburger"
         onClick={() => setOpen(true)}
         aria-label="Open menu"
       >
-        <span /><span /><span />
+        ☰
       </button>
 
       {/* Backdrop */}
@@ -46,7 +45,9 @@ export default function MenuSidebar({ currentUser }) {
       <nav className={`menu-sidebar${open ? ' open' : ''}`}>
         <div className="menu-header">
           <span className="menu-title">MENU</span>
-          <button className="menu-x" onClick={() => setOpen(false)} aria-label="Close">✕</button>
+          <button className="menu-x" onClick={() => setOpen(false)} aria-label="Close">
+            ✕
+          </button>
         </div>
 
         <div className="menu-section-label">
