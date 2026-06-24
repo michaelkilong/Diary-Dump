@@ -78,7 +78,10 @@ export default function SettingsClient({ username }) {
               />
               {error && <p className="cs-error">{error}</p>}
               <div style={{ display:'flex', gap: 8, marginTop: 10 }}>
-                <button className="btn-ghost" onClick={() => { setConfirmDel(false); setError(''); }}>
+                <button
+                  className="settings-cancel-btn"
+                  onClick={() => { setConfirmDel(false); setError(''); }}
+                >
                   Cancel
                 </button>
                 <button className="settings-delete-btn" onClick={handleDelete} disabled={deleting}>
